@@ -1,0 +1,10 @@
+{
+  "icon": "/icon.svg",
+  "ui": {
+    "dashboard-tab": {
+      "title": "Networks",
+      "src": "index.html",
+      "root": "ui"
+    }
+  }
+}
