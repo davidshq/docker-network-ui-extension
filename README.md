@@ -1,5 +1,9 @@
 # Docker Desktop Extension: Networks UI
 
+Yeah...It doesn't do most of the below yet...forthcoming.
+
+And using Agentic AI...so code quality is...
+
 A Docker Desktop extension that provides a **Containers-like UI for Docker Networks**:
 - List + search networks
 - Inspect network (drawer)
