@@ -43,9 +43,37 @@ function shortId(id: string) {
 }
 
 async function listNetworks(): Promise<NetworkListRow[]> {
-  const r = await dockerExec("network", ["ls", "--format", "{{json .}}"]);
+  // Parse table format since extension API has issues with template strings
+  const r = await dockerExec("network", ["ls"]);
   if (r.stderr) throw new Error(r.stderr);
-  return parseJsonLines<NetworkListRow>(r.stdout);
+  
+  if (!r.stdout) return [];
+  
+  // Parse the table output: NETWORK ID     NAME    DRIVER    SCOPE
+  const lines = r.stdout.trim().split('\n');
+  if (lines.length <= 1) return []; // Only header or empty
+  
+  return lines.slice(1).map(line => {
+    // Split by whitespace, but handle network names that might contain spaces
+    const trimmed = line.trim();
+    const match = trimmed.match(/^([a-f0-9]{12,})\s+([^\s]+(?:\s+[^\s]+)*?)\s+([^\s]+)\s+([^\s]+)$/);
+    if (match) {
+      return {
+        ID: match[1],
+        Name: match[2].trim(),
+        Driver: match[3],
+        Scope: match[4],
+      } as NetworkListRow;
+    }
+    // Fallback: simple split (may break with spaces in names)
+    const parts = trimmed.split(/\s+/);
+    return {
+      ID: parts[0] || '',
+      Name: parts.slice(1, -2).join(' ') || '',
+      Driver: parts[parts.length - 2] || '',
+      Scope: parts[parts.length - 1] || '',
+    } as NetworkListRow;
+  }).filter(n => n.ID && n.Name); // Filter out invalid entries
 }
 
 async function inspectNetwork(idOrName: string): Promise<NetworkInspect> {
